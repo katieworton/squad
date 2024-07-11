@@ -42,6 +42,14 @@ class LogParserLib:
                     snippets[regex_id].append(match[regex_id])
         return snippets
 
+    @classmethod
+    def parse_log(self, log, regexes):
+        regex = LogParserLib.compile_regexes(regexes)
+        matches = regex.findall(log)
+        snippets = LogParserLib.join_matches(matches, regexes)
+
+        return snippets
+
 
 class Plugin(BasePlugin):
     pass

@@ -61,9 +61,7 @@ class Plugin(BasePlugin):
             log = LogParserTestLib.kernel_msgs_only(log)
             suite, _ = testrun.build.project.suites.get_or_create(slug=f'log-parser-{log_type}')
 
-            regex = LogParserLib.compile_regexes(REGEXES)
-            matches = regex.findall(log)
-            snippets = LogParserLib.join_matches(matches, REGEXES)
+            snippets = LogParserLib.parse_log(log, REGEXES)
 
             for regex_id in range(len(REGEXES)):
                 test_name = REGEXES[regex_id][REGEX_NAME]
