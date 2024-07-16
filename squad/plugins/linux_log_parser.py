@@ -11,12 +11,19 @@ logger = logging.getLogger()
 
 class Plugin(BasePlugin):
 
+    def __extract_log_lines_by_regex_name(self, lines):
+        return '\n'.join(lines)
+
+    def __extract_log_lines_by_sha(self, lines):
+        return '\n---\n'.join(lines)
+
     def __create_tests_by_regex_name(self, testrun, suite, test_name, lines):
         metadata, _ = SuiteMetadata.objects.get_or_create(suite=suite.slug, name=test_name, kind='test')
+        log = self.__extract_log_lines_by_regex_name(lines)
         testrun.tests.create(
             suite=suite,
             result=(len(lines) == 0),
-            log='\n'.join(lines),
+            log=log,
             metadata=metadata,
             build=testrun.build,
             environment=testrun.environment,
@@ -34,10 +41,11 @@ class Plugin(BasePlugin):
         for sha, lines in shas.items():
             name = f'{test_name}-{sha}'
             metadata, _ = SuiteMetadata.objects.get_or_create(suite=suite.slug, name=name, kind='test')
+            log = self.__extract_log_lines_by_sha(lines)
             testrun.tests.create(
                 suite=suite,
                 result=False,
-                log='\n---\n'.join(lines),
+                log=log,
                 metadata=metadata,
                 build=testrun.build,
                 environment=testrun.environment,
