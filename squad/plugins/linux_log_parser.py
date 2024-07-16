@@ -11,12 +11,7 @@ logger = logging.getLogger()
 
 class Plugin(BasePlugin):
 
-    def __create_tests(self, testrun, suite, test_name, lines):
-        """
-        There will be at least one test per regex. If there were any match for a given
-        regex, then a new test will be generated using test_name + shasum. This helps
-        comparing kernel logs accross different builds
-        """
+    def __create_tests_by_regex_name(self, testrun, suite, test_name, lines):
         metadata, _ = SuiteMetadata.objects.get_or_create(suite=suite.slug, name=test_name, kind='test')
         testrun.tests.create(
             suite=suite,
@@ -27,6 +22,7 @@ class Plugin(BasePlugin):
             environment=testrun.environment,
         )
 
+    def __create_tests_by_sha(self, testrun, suite, test_name, lines):
         # Some lines of the matched regex might be the same, and we don't want to create
         # multiple tests like test1-sha1, test1-sha1, etc, so we'll create a set of sha1sums
         # then create only new tests for unique sha's
@@ -46,6 +42,16 @@ class Plugin(BasePlugin):
                 build=testrun.build,
                 environment=testrun.environment,
             )
+
+    def __create_tests(self, testrun, suite, test_name, lines):
+        """
+        There will be at least one test per regex. If there were any match for a given
+        regex, then a new test will be generated using test_name + shasum. This helps
+        comparing kernel logs accross different builds
+        """
+
+        self.__create_tests_by_regex_name(testrun, suite, test_name, lines)
+        self.__create_tests_by_sha(testrun, suite, test_name, lines)
 
     def postprocess_testrun(self, testrun):
         if testrun.log_file is None:
