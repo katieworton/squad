@@ -17,6 +17,9 @@ class Plugin(BasePlugin):
     def __extract_log_lines_by_sha(self, lines):
         return '\n---\n'.join(lines)
 
+    def __create_test_name_by_sha(self, test_name, sha):
+        return f'{test_name}-{sha}'
+
     def __create_tests_by_regex_name(self, testrun, suite, test_name, lines):
         metadata, _ = SuiteMetadata.objects.get_or_create(suite=suite.slug, name=test_name, kind='test')
         log = self.__extract_log_lines_by_regex_name(lines)
@@ -39,7 +42,7 @@ class Plugin(BasePlugin):
             shas[sha].add(line)
 
         for sha, lines in shas.items():
-            name = f'{test_name}-{sha}'
+            name = self.__create_test_name_by_sha(test_name, sha)
             metadata, _ = SuiteMetadata.objects.get_or_create(suite=suite.slug, name=name, kind='test')
             log = self.__extract_log_lines_by_sha(lines)
             testrun.tests.create(
